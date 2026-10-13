@@ -141,6 +141,74 @@ Strict validation is performed on both frontend and backend (Flask HTTP 400):
 
 ---
 
+## 📸 Project Screenshots
+
+### 1. Process Setup & Algorithm Selection
+
+Configure processes and select a CPU scheduling algorithm.
+
+<p align="center">
+  <img src="screenshots/1. Process Setup & Algorithm Selection.png" alt="Process Setup and Algorithm Selection" width="900">
+</p>
+
+### 2. Simulation & Gantt Chart
+
+View process execution and follow the scheduling timeline.
+
+<p align="center">
+  <img src="screenshots/2. Simulation & Gantt Chart.png" alt="Simulation and Gantt Chart" width="900">
+</p>
+
+### 3. Data Structure Visualization
+
+Visualize the data structures used by the selected scheduling algorithm.
+
+<p align="center">
+  <img src="screenshots/3. Data Structure Visualization.png" alt="Data Structure Visualization" width="900">
+</p>
+
+### 4. Performance Analysis & Comparison
+
+Analyze scheduling metrics and compare algorithm performance.
+
+<p align="center">
+  <img src="screenshots/4. Performance Analysis & Comparison.png" alt="Performance Analysis and Comparison" width="900">
+</p>
+
+### 5. Algorithm Reference & Theory
+
+Learn about the scheduling algorithms and their working methods.
+
+<p align="center">
+  <img src="screenshots/5. Algorithm Reference & Theory.png" alt="Algorithm Reference and Theory" width="900">
+</p>
+
+### 6. About Project
+
+View project information, technologies, and development details.
+
+<p align="center">
+  <img src="screenshots/6. About Project.png" alt="About Project" width="900">
+</p>
+
+### 7. Algorithm Performance Comparison
+
+Compare the performance of different CPU scheduling algorithms.
+
+<p align="center">
+  <img src="screenshots/Algorithm Performance Comparison.png" alt="Algorithm Performance Comparison" width="900">
+</p>
+
+### 8. Gantt Chart
+
+View the CPU execution order and process scheduling intervals.
+
+<p align="center">
+  <img src="screenshots/gantt chart.png" alt="CPU Scheduling Gantt Chart" width="900">
+</p>
+
+---
+
 ## 📁 Project Structure
 
 ```
