@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Lab — Learn CPU Scheduling Through Data Structures</title>
+    <meta name="description" content="A college Data Structures and Algorithms learning platform demonstrating CPU scheduling algorithms, custom min-heaps, and FIFO queues with interactive step-by-step visualizations.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark-theme">
+    <!-- =====================================================================
+         WEBSITE HEADER & NAVIGATION
+         ===================================================================== -->
+    <header class="site-header" id="siteHeader">
+        <div class="header-inner">
+            <div class="brand-block">
+                <a href="#home" class="brand-link" aria-label="CPU Scheduling Lab Home">
+                    <span class="brand-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <rect x="9" y="9" width="6" height="6"/>
+                            <line x1="9" y1="1" x2="9" y2="4"/>
+                            <line x1="15" y1="1" x2="15" y2="4"/>
+                            <line x1="9" y1="20" x2="9" y2="23"/>
+                            <line x1="15" y1="20" x2="15" y2="23"/>
+                            <line x1="20" y1="9" x2="23" y2="9"/>
+                            <line x1="20" y1="14" x2="23" y2="14"/>
+                            <line x1="1" y1="9" x2="4" y2="9"/>
+                            <line x1="1" y1="14" x2="4" y2="14"/>
+                        </svg>
+                    </span>
+                    <div class="brand-text">
+                        <span class="site-title">CPU Scheduling Lab</span>
+                        <span class="site-subtitle">Learn CPU Scheduling Through Data Structures</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="site-nav" id="siteNav" aria-label="Main Navigation">
+                <ul class="nav-list">
+                    <li><a href="#setupSection" class="nav-link active">1. Setup &amp; Config</a></li>
+                    <li><a href="#simulationSection" class="nav-link">2. Simulation &amp; Gantt</a></li>
+                    <li><a href="#dsaSection" class="nav-link">3. DSA Visualizer</a></li>
+                    <li><a href="#resultsSection" class="nav-link">4. Performance</a></li>
+                    <li><a href="#algorithmsInfo" class="nav-link">5. Algorithm Guide</a></li>
+                    <li><a href="#aboutSection" class="nav-link">6. About</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button type="button" id="themeToggleBtn" class="btn btn-secondary btn-sm" aria-label="Toggle theme">
+                    <span id="themeLabel">Light Mode</span>
+                </button>
+                <button type="button" id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Open mobile navigation menu">
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         MAIN CONTENT CONTAINER
+         ===================================================================== -->
+    <main class="page-container" id="home">
+        <!-- ALERT BANNER -->
+        <div id="errorBanner" class="alert-banner hidden" role="alert">
+            <span class="alert-icon">!</span>
+            <span id="errorMessageText" class="alert-text">Validation error</span>
+            <button type="button" id="errorCloseBtn" class="alert-close" aria-label="Close error">&times;</button>
+        </div>
+
+        <!-- =================================================================
+             SECTION 1: PROCESS SETUP & ALGORITHM SELECTION
+             ================================================================= -->
+        <section class="section-card" id="setupSection">
+            <div class="section-heading">
+                <h2>1. Process Setup &amp; Algorithm Selection</h2>
+                <p class="section-subtext">Select a scheduling algorithm from the categories below, configure processes, and run the simulator.</p>
+            </div>
+
+            <!-- Algorithm Selection: Category A & Category B -->
+            <div class="algorithm-selection-block">
+                <div class="algo-category-col">
+                    <span class="category-title">A. Preemptive Algorithms</span>
+                    <div class="algo-options-list">
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="round_robin" id="algoRR">
+                            <div class="algo-card-body">
+                                <span class="algo-name">Round Robin (RR)</span>
+                                <span class="algo-ds-tag tag-queue">FIFO Queue</span>
+                            </div>
+                        </label>
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="srtf" id="algoSRTF">
+                            <div class="algo-card-body">
+                                <span class="algo-name">Shortest Remaining Time First (SRTF)</span>
+                                <span class="algo-ds-tag tag-heap">Min-Heap</span>
+                            </div>
+                        </label>
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="priority_preemptive" id="algoPrioPreempt" checked>
+                            <div class="algo-card-body">
+                                <span class="algo-name">Preemptive Priority Scheduling</span>
+                                <span class="algo-ds-tag tag-heap">Min-Heap</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="algo-category-col">
+                    <span class="category-title">B. Non-Preemptive Algorithms</span>
+                    <div class="algo-options-list">
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="fcfs" id="algoFCFS">
+                            <div class="algo-card-body">
+                                <span class="algo-name">First-Come, First-Served (FCFS)</span>
+                                <span class="algo-ds-tag tag-queue">FIFO Queue</span>
+                            </div>
+                        </label>
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="sjf" id="algoSJF">
+                            <div class="algo-card-body">
+                                <span class="algo-name">Shortest Job First (SJF)</span>
+                                <span class="algo-ds-tag tag-heap">Min-Heap</span>
+                            </div>
+                        </label>
+                        <label class="algo-radio-card">
+                            <input type="radio" name="algorithm" value="priority_non_preemptive" id="algoPrioNonPreempt">
+                            <div class="algo-card-body">
+                                <span class="algo-name">Non-Preemptive Priority Scheduling</span>
+                                <span class="algo-ds-tag tag-heap">Min-Heap</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Name and Immediate Technical Explanation -->
+            <div class="selected-algo-card" id="selectedAlgoCard">
+                <div class="algo-card-top">
+                    <div class="algo-card-identity">
+                        <span class="badge-pill badge-preempt" id="activeAlgoBadge">Preemptive</span>
+                        <h3 class="algo-title-main" id="activeAlgoTitle">Preemptive Priority Scheduling</h3>
+                        <span class="badge-pill badge-ds" id="activeAlgoDs">Data Structure: Binary Min-Heap</span>
+                    </div>
+                </div>
+                <div class="algo-description-text" id="activeAlgoDescription">
+                    Selects the highest-priority ready process. A running process can be interrupted when a higher-priority process arrives.
+                </div>
+                <div class="algo-details-strip">
+                    <div class="strip-item hidden" id="quantumControlWrap">
+                        <label for="inputQuantum" class="strip-label">Time Quantum (Q):</label>
+                        <input type="number" id="inputQuantum" min="1" max="20" value="2" class="num-input-sm" aria-label="Round Robin time quantum">
+                        <span class="param-hint">units per CPU slice</span>
+                    </div>
+                    <div class="strip-item" id="priorityRuleNote">
+                        <span class="strip-label">Priority Rule:</span>
+                        <span class="strip-val">Smaller number = Higher CPU priority (Priority 1 &gt; Priority 2)</span>
+                    </div>
+                    <div class="strip-item">
+                        <span class="strip-label">Tie-Breaking:</span>
+                        <span class="strip-val">Earlier Arrival Time &rarr; Natural numeric PID (P2 before P10)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Input Form -->
+            <form id="addProcessForm" class="process-form" autocomplete="off">
+                <div class="form-inputs-row">
+                    <div class="form-group">
+                        <label for="inputPid">Process ID</label>
+                        <input type="text" id="inputPid" placeholder="P5" maxlength="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputArrival">Arrival Time (AT)</label>
+                        <input type="number" id="inputArrival" min="0" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputBurst">Burst Time (BT)</label>
+                        <input type="number" id="inputBurst" min="1" value="4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPriority">Priority</label>
+                        <input type="number" id="inputPriority" value="1" required>
+                    </div>
+                    <div class="form-group color-group">
+                        <label for="inputColor">Color</label>
+                        <input type="color" id="inputColor" value="#3b82f6" aria-label="Process color">
+                    </div>
+                    <div class="form-group-btn">
+                        <button type="submit" id="btnAddProcess" class="btn btn-secondary">
+                            + Add Process
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Configured Processes Table -->
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="data-table" id="processInputTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Color</th>
+                                <th>Process ID</th>
+                                <th>Arrival Time</th>
+                                <th>Burst Time</th>
+                                <th>Priority</th>
+                                <th style="width: 80px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="processTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="setup-actions-bar">
+                    <!-- Run Simulation button (commented out as simulation updates automatically)
+                    <button type="button" id="btnRunSimulation" class="btn btn-primary btn-large">
+                        Run Simulation
+                    </button>
+                    -->
+                    <button type="button" id="btnCompareAll" class="btn btn-primary btn-large" title="Run all 6 algorithms on this workload to compare performance">
+                        Compare All 6 Algorithms
+                    </button>
+                    <button type="button" id="btnQuickAdd" class="btn btn-secondary">
+                        + Quick Add Process
+                    </button>
+                    <button type="button" id="btnResetProcesses" class="btn btn-secondary">
+                        Reset Processes
+                    </button>
+                    <span class="process-counter" id="processCountBadge">4 Processes</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             SECTION 2: SIMULATION & GANTT CHART
+             ================================================================= -->
+        <section class="section-card" id="simulationSection">
+            <div class="section-heading">
+                <h2>2. Simulation &amp; Gantt Chart</h2>
+                <p class="section-subtext">Observe step-by-step CPU execution, process states, and context switches.</p>
+            </div>
+
+            <!-- Playback Controls directly above Gantt Chart -->
+            <div class="playback-panel" id="playbackPanel">
+                <div class="playback-top-bar">
+                    <div class="time-readout">
+                        <span class="time-label">Simulation Clock:</span>
+                        <span class="time-value" id="currentTimeDisplay">T = 0</span>
+                        <span class="time-max">/ <span id="totalTimeDisplay">0</span></span>
+                    </div>
+
+                    <div class="playback-buttons-bar">
+                        <button type="button" id="btnReset" class="btn btn-sm btn-secondary" title="Reset to T=0">Reset</button>
+                        <button type="button" id="btnStepPrev" class="btn btn-sm btn-secondary" title="Step back 1 unit">&larr; Prev Step</button>
+                        <button type="button" id="btnPlayPause" class="btn btn-sm btn-primary play-btn" title="Play or Pause">
+                            <span id="playText">Play</span>
+                        </button>
+                        <button type="button" id="btnStepNext" class="btn btn-sm btn-secondary" title="Step forward 1 unit">Next Step &rarr;</button>
+                        <button type="button" id="btnJumpEnd" class="btn btn-sm btn-secondary" title="Jump to completed state">Jump to End</button>
+                    </div>
+
+                    <div class="playback-speed-wrap">
+                        <label for="speedSelect" class="speed-label">Speed:</label>
+                        <select id="speedSelect" class="select-input select-sm" aria-label="Playback speed">
+                            <option value="1500">0.5x</option>
+                            <option value="800" selected>1.0x</option>
+                            <option value="400">2.0x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Timeline Scrubber -->
+                <div class="scrubber-bar">
+                    <input type="range" id="timelineScrubber" min="0" max="0" value="0" class="range-slider" aria-label="Simulation time scrubber">
+                </div>
+            </div>
+
+            <!-- Current Decision Explanation Callout -->
+            <div class="explanation-box" id="decisionExplanationBox">
+                <div class="explanation-header">
+                    <span class="explanation-badge">Scheduling Decision at T = <span id="eventTimeTag">0</span></span>
+                    <span class="core-status-pill" id="cpuStatusBadge">IDLE</span>
+                </div>
+                <div class="explanation-content" id="eventCalloutText">
+                    Simulation ready. Click Play or Next Step to begin execution.
+                </div>
+            </div>
+
+            <!-- Wide Gantt Chart -->
+            <div class="gantt-container" id="ganttContainer">
+                <div class="gantt-header-row">
+                    <span class="gantt-title">Execution Timeline (Gantt Chart)</span>
+                    <div class="gantt-legend" id="ganttLegend">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="gantt-viewport" id="ganttWrapper">
+                    <div class="gantt-stage">
+                        <div class="gantt-playhead" id="ganttPlayhead" style="left: 0%;">
+                            <div class="playhead-label" id="playheadTag">T=0</div>
+                            <div class="playhead-bar"></div>
+                        </div>
+
+                        <div class="gantt-track" id="ganttTrack">
+                            <!-- Gantt blocks rendered here -->
+                        </div>
+
+                        <div class="gantt-axis" id="ganttAxis">
+                            <!-- Time ticks rendered here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="gantt-hint">Click anywhere along the timeline bar to jump directly to that time unit.</div>
+            </div>
+
+            <!-- Live Process Lifecycle Table -->
+            <div class="live-status-card">
+                <div class="live-status-header">
+                    <h3>Process Status at T = <span id="statusTimeBadge">0</span></h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table" id="lifecycleTable">
+                        <thead>
+                            <tr>
+                                <th>Process</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Remaining Burst</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lifecycleTableBody">
+                            <!-- Populated per time step -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             SECTION 3: DATA STRUCTURE VISUALIZATION
+             ================================================================= -->
+        <section class="section-card" id="dsaSection">
+            <div class="section-heading">
+                <h2>3. Data Structure Visualization</h2>
+                <p class="section-subtext">The actual internal data structure state backing process selection at time T.</p>
+            </div>
+
+            <!-- Dynamic DSA Content (Renders FIFO Queue or Min-Heap) -->
+            <div class="dsa-active-container" id="dsaActiveContainer">
+                <!-- Populated dynamically based on whether active algorithm uses a Queue or a Min-Heap -->
+            </div>
+        </section>
+
+        <!-- =================================================================
+             SECTION 4: PERFORMANCE ANALYSIS & COMPARISON
+             ================================================================= -->
+        <section class="section-card" id="resultsSection">
+            <div class="section-heading">
+                <h2>4. Performance Analysis &amp; Comparison</h2>
+                <p class="section-subtext">Standard operating system scheduling metrics and comparative performance analysis.</p>
+            </div>
+
+            <!-- KPI Cards Row -->
+            <div class="metrics-cards-row">
+                <div class="metric-card">
+                    <span class="metric-title">Avg Turnaround Time</span>
+                    <span class="metric-value" id="kpiTat">0.00</span>
+                    <span class="metric-formula">TAT = CT &minus; AT</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Avg Waiting Time</span>
+                    <span class="metric-value" id="kpiWt">0.00</span>
+                    <span class="metric-formula">WT = TAT &minus; BT</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Avg Response Time</span>
+                    <span class="metric-value" id="kpiRt">0.00</span>
+                    <span class="metric-formula">RT = First Start &minus; AT</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">CPU Utilization</span>
+                    <span class="metric-value" id="kpiCpuUtil">0.0%</span>
+                    <span class="metric-formula">Busy Time / Total Time</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Throughput</span>
+                    <span class="metric-value" id="kpiThroughput">0.00</span>
+                    <span class="metric-formula">Processes / Total Time</span>
+                </div>
+            </div>
+
+            <!-- Process-by-Process Metrics Table -->
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="data-table" id="metricsTable">
+                        <thead>
+                            <tr>
+                                <th>Process</th>
+                                <th>Arrival (AT)</th>
+                                <th>Burst (BT)</th>
+                                <th>Priority</th>
+                                <th>First Start (ST)</th>
+                                <th>Completion (CT)</th>
+                                <th>Turnaround (TAT)</th>
+                                <th>Waiting (WT)</th>
+                                <th>Response (RT)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- All 6 Algorithms Comparison Section -->
+            <div class="comparison-block" id="comparisonBlock">
+                <div class="comparison-header">
+                    <h3>Algorithm Performance Comparison</h3>
+                    <p class="comparison-desc">Comparison of all 6 scheduling algorithms executed against the same process workload.</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table" id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Type</th>
+                                <th>Data Structure</th>
+                                <th>Avg Turnaround Time</th>
+                                <th>Avg Waiting Time</th>
+                                <th>Avg Response Time</th>
+                                <th>CPU Utilization</th>
+                                <th>Throughput</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- Populated when user clicks "Compare All 6 Algorithms" or runs simulation -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Collapsible Event Log (Collapsed by default, zero auto-scrolling) -->
+            <details class="event-log-accordion" id="eventLogAccordion">
+                <summary class="accordion-summary">
+                    <span>Execution Event Log</span>
+                    <span class="accordion-badge" id="logCountBadge">Click to inspect</span>
+                </summary>
+                <div class="events-log-wrapper" id="eventsLogContainer">
+                    <!-- Events populated dynamically without auto-scrolling -->
+                </div>
+            </details>
+        </section>
+
+        <!-- =================================================================
+             SECTION 5: ALGORITHM REFERENCE & THEORY
+             ================================================================= -->
+        <section class="section-card" id="algorithmsInfo">
+            <div class="section-heading">
+                <h2>5. Algorithm Reference &amp; Theory</h2>
+                <p class="section-subtext">Comprehensive theoretical principles, data structures, complexities, trade-offs, and examples for all 6 CPU scheduling algorithms.</p>
+            </div>
+
+            <!-- Algorithm Switcher Tabs -->
+            <div class="algo-tabs-bar" id="algoTabsBar">
+                <button type="button" class="algo-tab-btn" data-algo="fcfs">First-Come, First-Served (FCFS)</button>
+                <button type="button" class="algo-tab-btn" data-algo="sjf">Shortest Job First (SJF)</button>
+                <button type="button" class="algo-tab-btn" data-algo="srtf">Shortest Remaining Time First (SRTF)</button>
+                <button type="button" class="algo-tab-btn" data-algo="round_robin">Round Robin (RR)</button>
+                <button type="button" class="algo-tab-btn active" data-algo="priority_preemptive">Priority (Preemptive)</button>
+                <button type="button" class="algo-tab-btn" data-algo="priority_non_preemptive">Priority (Non-Preemptive)</button>
+            </div>
+
+            <div class="algo-info-content" id="algoInfoContent">
+                <!-- Dynamically populated based on active algorithm tab -->
+            </div>
+        </section>
+
+        <!-- =================================================================
+             SECTION 6: ABOUT PROJECT
+             ================================================================= -->
+        <section class="section-card" id="aboutSection">
+            <div class="section-heading">
+                <h2>6. About Project</h2>
+                <p class="section-subtext">Educational context, design philosophy, and data structures utilized.</p>
+            </div>
+            <div class="about-content">
+                <p>
+                    <strong>CPU Scheduling Lab</strong> was developed as a college Data Structures and Algorithms (DSA) project.
+                    The platform bridges theoretical operating system concepts with hands-on computer science data structures.
+                </p>
+                <div class="about-grid">
+                    <div class="about-col">
+                        <h4>Binary Min-Heap Implementation</h4>
+                        <p>
+                            Implemented manually from scratch in Python (without <code>heapq</code>).
+                            Processes are maintained in a complete binary tree backed by an array.
+                            The scheduler extracts the root in <code>O(log N)</code> time for Priority, SJF, and SRTF scheduling.
+                        </p>
+                    </div>
+                    <div class="about-col">
+                        <h4>FIFO Queue Implementation</h4>
+                        <p>
+                            Implemented manually to model the strict First-In, First-Out queueing discipline required
+                            for Round Robin time-slicing and FCFS. Processes are enqueued at the tail and dequeued from the head in <code>O(1)</code> time.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- =====================================================================
+         WEBSITE FOOTER
+         ===================================================================== -->
+    <footer class="site-footer" id="siteFooter">
+        <div class="footer-inner">
+            <div class="footer-col footer-about">
+                <h3 class="footer-brand">CPU Scheduling Lab</h3>
+                <p class="footer-desc">
+                    An educational DSA project demonstrating CPU scheduling algorithms and data structures through interactive visualization.
+                </p>
+                <p class="footer-academic-note">
+                    Developed as a college Data Structures and Algorithms project.
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4 class="footer-col-title">Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#algorithmsInfo">Algorithms</a></li>
+                    <li><a href="#dsaSection">DSA Visualization</a></li>
+                    <li><a href="#resultsSection">Performance Analysis</a></li>
+                    <li><a href="#aboutSection">About Project</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4 class="footer-col-title">Technologies</h4>
+                <ul class="footer-links tech-list">
+                    <li>HTML5 &bull; Semantic Layout</li>
+                    <li>CSS3 &bull; Responsive Design</li>
+                    <li>JavaScript &bull; State &amp; Playback</li>
+                    <li>Python 3 &bull; Custom DSA</li>
+                    <li>Flask &bull; Backend REST API</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <span>&copy; <span id="currentYearSpan">2026</span> CPU Scheduling Lab &bull; College DSA Project</span>
+                <span class="footer-rule-text">Educational Simulation Platform</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
