@@ -186,6 +186,60 @@ def _calculate_metrics(completed_processes: List[Process], total_makespan: int) 
     }
 
 
+def _build_complete_dsa_snapshot(
+    algo_key: str,
+    processes: List[Process],
+    total_pushes: int,
+    total_pops: int,
+    peak_size: int,
+    dispatch_order: List[str]
+) -> Dict[str, Any]:
+    """Generates the full canonical data structure snapshot and lifecycle stats."""
+    algo_key = algo_key.lower().strip()
+    if algo_key in ("round_robin", "rr", "fcfs"):
+        full_q = FIFOQueue()
+        for p in sorted(processes, key=lambda x: (x.arrival_time, pid_sort_key(x.pid))):
+            full_q.enqueue(p.clone())
+        metric = "Arrival Order (Time-Sliced)" if "round_robin" in algo_key or algo_key == "rr" else "Arrival Time (Strict FIFO)"
+        return {
+            "ds_type": "queue",
+            "ds_name": "FIFO Ready Queue",
+            "metric_name": metric,
+            "complexity": "O(1) Enqueue & Dequeue",
+            "total_pushes": total_pushes,
+            "total_pops": total_pops,
+            "peak_size": peak_size,
+            "dispatch_order": dispatch_order,
+            "complete_snapshot": full_q.get_snapshot()
+        }
+    else:
+        if algo_key == "srtf":
+            key_func = lambda p: (p.remaining_time, p.arrival_time, pid_sort_key(p.pid))
+            metric = "Remaining Execution Time"
+        elif algo_key == "sjf":
+            key_func = lambda p: (p.burst_time, p.arrival_time, pid_sort_key(p.pid))
+            metric = "Initial Burst Time"
+        else:
+            key_func = lambda p: (p.priority, p.arrival_time, pid_sort_key(p.pid))
+            metric = "Priority (Lowest Value = Highest Priority)"
+
+        full_heap = MinHeap(key_func=key_func)
+        for p in processes:
+            full_heap.push(p.clone())
+
+        return {
+            "ds_type": "heap",
+            "ds_name": "Binary Min-Heap",
+            "metric_name": metric,
+            "complexity": "O(log N) Insert & Extract-Min",
+            "total_pushes": total_pushes,
+            "total_pops": total_pops,
+            "peak_size": peak_size,
+            "dispatch_order": dispatch_order,
+            "complete_snapshot": full_heap.get_snapshot()
+        }
+
+
 # ==============================================================================
 # 1. ROUND ROBIN (PREEMPTIVE, FIFO QUEUE)
 # ==============================================================================
@@ -198,6 +252,11 @@ def schedule_round_robin(processes: List[Process], quantum: int = 2) -> Dict[str
     queue = FIFOQueue()
     total_processes = len(procs)
     completed_processes: List[Process] = []
+
+    total_pushes = 0
+    total_pops = 0
+    peak_size = 0
+    dispatch_order: List[str] = []
 
     current_time = 0
     running_process: Optional[Process] = None
@@ -217,6 +276,8 @@ def schedule_round_robin(processes: List[Process], quantum: int = 2) -> Dict[str
             arrivals[current_time].sort(key=lambda p: (p.arrival_time, pid_sort_key(p.pid)))
             for arr_proc in arrivals[current_time]:
                 queue.enqueue(arr_proc)
+                total_pushes += 1
+                peak_size = max(peak_size, queue.size())
                 msg = f"Process {arr_proc.pid} arrived -> Enqueued to Ready Queue tail."
                 tick_events.append(msg)
                 events_log.append({"time": current_time, "type": "ARRIVE", "pid": arr_proc.pid, "message": msg})
@@ -228,6 +289,8 @@ def schedule_round_robin(processes: List[Process], quantum: int = 2) -> Dict[str
             tick_events.append(re_msg)
             events_log.append({"time": current_time, "type": "PREEMPT", "pid": running_process.pid, "message": re_msg})
             queue.enqueue(running_process)
+            total_pushes += 1
+            peak_size = max(peak_size, queue.size())
             running_process = None
             quantum_elapsed = 0
 
@@ -235,6 +298,8 @@ def schedule_round_robin(processes: List[Process], quantum: int = 2) -> Dict[str
         if running_process is None:
             if not queue.is_empty():
                 running_process = queue.dequeue()
+                total_pops += 1
+                dispatch_order.append(running_process.pid)
                 quantum_elapsed = 0
                 if running_process.start_time is None:
                     running_process.start_time = current_time
@@ -340,7 +405,8 @@ def schedule_round_robin(processes: List[Process], quantum: int = 2) -> Dict[str
         "time_steps": time_steps,
         "events_log": events_log,
         "process_metrics": [p.to_dict() for p in completed_processes],
-        "summary_metrics": _calculate_metrics(completed_processes, current_time)
+        "summary_metrics": _calculate_metrics(completed_processes, current_time),
+        "dsa_summary": _build_complete_dsa_snapshot("round_robin", processes, total_pushes, total_pops, peak_size, dispatch_order)
     }
 
 
@@ -357,6 +423,11 @@ def schedule_srtf(processes: List[Process]) -> Dict[str, Any]:
     heap = MinHeap(key_func=lambda p: (p.remaining_time, p.arrival_time, pid_sort_key(p.pid)))
     total_processes = len(procs)
     completed_processes: List[Process] = []
+
+    total_pushes = 0
+    total_pops = 0
+    peak_size = 0
+    dispatch_order: List[str] = []
 
     current_time = 0
     running_process: Optional[Process] = None
@@ -375,6 +446,8 @@ def schedule_srtf(processes: List[Process]) -> Dict[str, Any]:
             arrivals[current_time].sort(key=lambda p: (p.arrival_time, pid_sort_key(p.pid)))
             for arr_proc in arrivals[current_time]:
                 heap.push(arr_proc)
+                total_pushes += 1
+                peak_size = max(peak_size, heap.size())
                 msg = f"Process {arr_proc.pid} arrived (Remaining: {arr_proc.remaining_time}) -> Pushed into SRTF Min-Heap."
                 tick_events.append(msg)
                 events_log.append({"time": current_time, "type": "ARRIVE", "pid": arr_proc.pid, "message": msg})
@@ -384,7 +457,11 @@ def schedule_srtf(processes: List[Process]) -> Dict[str, Any]:
             if not heap.is_empty() and heap.peek().remaining_time < running_process.remaining_time:
                 preempted = running_process
                 heap.push(preempted)
+                total_pushes += 1
+                peak_size = max(peak_size, heap.size())
                 running_process = heap.pop()
+                total_pops += 1
+                dispatch_order.append(running_process.pid)
                 p_msg = (f"PREEMPTION at T={current_time}: {running_process.pid} (Remaining: {running_process.remaining_time}) "
                          f"interrupted {preempted.pid} (Remaining: {preempted.remaining_time}).")
                 tick_events.append(p_msg)
@@ -394,6 +471,8 @@ def schedule_srtf(processes: List[Process]) -> Dict[str, Any]:
         else:
             if not heap.is_empty():
                 running_process = heap.pop()
+                total_pops += 1
+                dispatch_order.append(running_process.pid)
                 if running_process.start_time is None:
                     running_process.start_time = current_time
                 d_msg = f"CPU dispatched {running_process.pid} with shortest remaining time ({running_process.remaining_time})."
